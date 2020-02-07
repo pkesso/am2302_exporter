@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description="Prometheus exporter for am2302 air
 
 parser.add_argument('--temperature_scale', action='store', default='celsius', help='[celsius|farenheit|kelvin], default: celsius')
 parser.add_argument('--listen', action='store', default='0.0.0.0', help='bind to address, default: 0.0.0.0')
-parser.add_argument('--port', action='store', type=int, default=8000, help='bind to port, default: 8001')
+parser.add_argument('--port', action='store', type=int, default=8001, help='bind to port, default: 8001')
 parser.add_argument('--polling_interval', action='store', type=int, default=1, help='sensor polling interval, seconds, default: 1')
 parser.add_argument('--pin', action='store', type=int, default=18, help='pin number, where sensor is connected, default: 18')
 #TODO verbose
