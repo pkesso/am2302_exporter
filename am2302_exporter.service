@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus exporter for am2302 air temperature and humidity sensor
+Documentation=https://github.com/pkesso/am2302_exporter
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+SyslogIdentifier=am2302_exporter
+WorkingDirectory=/opt/am2302_exporter
+ExecStart=/opt/am2302_exporter/bin/python3 am2302_exporter.py  
+KillSignal=SIGINT
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

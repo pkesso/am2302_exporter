@@ -1,46 +1,38 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# TODO parse args: bus, verbose, pin, c/f/k, addr, port
-
+import argparse
 import time
 import Adafruit_DHT
 from prometheus_client import start_http_server, Summary, Gauge
 
-temperature_scale='celsius'
-listen='0.0.0.0'
-port=8001
+parser = argparse.ArgumentParser(description="Prometheus exporter for am2302 air temperature and humidity sensor")
 
-usage_message = """Prometheus exporter for AM2302 air temperature and relative humidity sensor
-           Homepage:
-           Options:
-           --temperature-scale=[celsius|farenheit|kelvin], default is celsius
-           --pin=<pin number>, MANDATORY pin № in BCM notation, see `gpio readall`
-           --refresh_interval=<seconds>, default is 1
-           --verbose
-           --listen=<ip>, default is 0.0.0.0
-           --port=<port>, default is 8000 #TODO"""
+parser.add_argument('--temperature_scale', action='store', default='celsius', help='[celsius|farenheit|kelvin], default: celsius')
+parser.add_argument('--listen', action='store', default='0.0.0.0', help='bind to address, default: 0.0.0.0')
+parser.add_argument('--port', action='store', type=int, default=8000, help='bind to port, default: 8001')
+parser.add_argument('--polling_interval', action='store', type=int, default=1, help='sensor polling interval, seconds, default: 1')
+parser.add_argument('--pin', action='store', type=int, default=18, help='pin number, where sensor is connected, default: 18')
+#TODO verbose
+
+args = parser.parse_args()
 
 REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing request')
 
 sensor=Adafruit_DHT.AM2302
-pin=18
 
 humidity = Gauge('am2302_humidity', 'Air relative humidity, %')
-temperature = Gauge('am2302_temperature', 'Air temperature, ' + temperature_scale)
+temperature = Gauge('am2302_temperature', 'Air temperature, ' + args.temperature_scale)
 
-def usage():
-    print('usage_message')
-    exit(0)
 
 @REQUEST_TIME.time()
 def get_data():
-    humidity_raw, temperature_raw = Adafruit_DHT.read_retry(sensor, pin)
+    humidity_raw, temperature_raw = Adafruit_DHT.read_retry(sensor, args.pin)
 
-    if temperature_scale=='celsius':
+    if args.temperature_scale=='celsius':
         temperature_processed=temperature_raw
-    elif humidity_scale=='kelvin':
+    elif args.temperature_scale=='kelvin':
         temperature_processed=temperature_raw+273.15
-    elif temperature_scale=='farenheit':
+    elif args.temperature_scale=='farenheit':
         temperature_processed= 9.0/5.0 * temperature_raw + 32
     else:
         print('ERROR: Wrong temperature_scale: only celsius|farenheit|kelvin supported')
@@ -52,7 +44,7 @@ def get_data():
     humidity.set(humidity_raw)
 
 if __name__ == '__main__':
-    start_http_server(port)
+    start_http_server(args.port, args.listen)
     while True:
         get_data()
-        time.sleep(1)
+        time.sleep(args.polling_interval)
